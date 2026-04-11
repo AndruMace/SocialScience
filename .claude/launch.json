@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Client (Vite)",
+      "runtimeExecutable": "/Users/andrumace/.bun/bin/bun",
+      "runtimeArgs": ["run", "--cwd", "packages/client", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "Server (Express)",
+      "runtimeExecutable": "/Users/andrumace/.bun/bin/bun",
+      "runtimeArgs": ["run", "--filter", "@socialscience/server", "dev"],
+      "port": 3001
+    },
+    {
+      "name": "Vite Preview",
+      "runtimeExecutable": "/Users/andrumace/.bun/bin/bun",
+      "runtimeArgs": ["run", "--filter", "@socialscience/client", "preview"],
+      "port": 4173
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --ui-scale: 1.2;
+    --background: 240 10% 8%;
+    --foreground: 60 20% 90%;
+    --card: 240 10% 12%;
+    --card-foreground: 60 20% 90%;
+    --popover: 240 10% 14%;
+    --popover-foreground: 60 20% 90%;
+    --primary: 120 80% 50%;
+    --primary-foreground: 240 10% 8%;
+    --secondary: 210 80% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 240 10% 8%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --muted: 240 10% 18%;
+    --muted-foreground: 240 5% 55%;
+    --border: 240 10% 28%;
+    --input: 240 10% 18%;
+    --ring: 120 80% 50%;
+    --radius: 0px;
+  }
+
+  @media (max-width: 640px) {
+    :root {
+      --ui-scale: 1.12;
+    }
+  }
+
+  html {
+    font-size: calc(100% * var(--ui-scale));
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    image-rendering: pixelated;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Press Start 2P', cursive;
+    line-height: 1.6;
+  }
+}
+
+/* Scale fixed-size utility classes that do not respond to rem scaling */
+.text-\[6px\] { font-size: 7px; }
+.text-\[7px\] { font-size: 8px; }
+.text-\[8px\] { font-size: 10px; }
+.text-\[9px\] { font-size: 11px; }
+.text-\[10px\] { font-size: 12px; }
+.text-\[12px\] { font-size: 14px; }
+.text-\[14px\] { font-size: 17px; }
+.min-w-\[260px\] { min-width: 312px; }
+.min-h-\[80px\] { min-height: 96px; }
+
+/* Custom pixel art utility classes */
+@utility pixel-shadow {
+  box-shadow: 4px 4px 0px 0px hsl(var(--border));
+}
+@utility pixel-shadow-accent {
+  box-shadow: 4px 4px 0px 0px hsl(var(--accent));
+}
+@utility pixel-shadow-primary {
+  box-shadow: 4px 4px 0px 0px hsl(var(--primary));
+}
+@utility pixel-border {
+  border: 2px solid hsl(var(--border));
+}
+@utility pixel-border-primary {
+  border: 2px solid hsl(var(--primary));
+}
+@utility pixel-border-accent {
+  border: 2px solid hsl(var(--accent));
+}
+@utility font-pixel {
+  font-family: 'Press Start 2P', cursive;
+}
+@utility font-pixel-body {
+  font-family: 'VT323', monospace;
+}
+@utility btn-pixel {
+  border: 2px solid hsl(var(--border));
+  box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.1s;
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+}
+@utility card-pixel {
+  border: 2px solid hsl(var(--border));
+  box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  background-color: hsl(var(--card));
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* Pixel blink animation */
+@keyframes pixel-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.animate-pixel-blink { animation: pixel-blink 1s steps(1) infinite; }
+
+/* XP bar fill animation */
+@keyframes xp-fill {
+  from { width: 0%; }
+}
+.animate-xp-fill { animation: xp-fill 0.6s steps(12) forwards; }
+
+/* Level up flash */
+@keyframes level-up-flash {
+  0%, 100% { opacity: 0; }
+  10%, 90% { opacity: 0.6; }
+}
+.animate-level-up { animation: level-up-flash 0.8s steps(4) forwards; }

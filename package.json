@@ -1,0 +1,19 @@
+{
+  "name": "socialscience",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --prefix-colors \"cyan,green\" --names \"client,server\" \"bun run dev:client\" \"bun run dev:server\"",
+    "dev:client": "bun run --filter @socialscience/client dev",
+    "dev:server": "bun run --filter @socialscience/server dev",
+    "build": "bun run --filter '*' build",
+    "db:push": "bun run --filter @socialscience/server db:push",
+    "db:generate": "bun run --filter @socialscience/server db:generate",
+    "db:migrate": "bun run --filter @socialscience/server db:migrate",
+    "lint": "bun run --filter '*' lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
