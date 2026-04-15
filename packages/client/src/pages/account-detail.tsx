@@ -5,7 +5,7 @@ import { usePosts } from '../hooks/use-posts'
 import { useGameState, useAchievements, useXpHistory, useAchievementCatalog } from '../hooks/use-game'
 import { useAccountAnalytics, useLatestSnapshot, useRefreshAnalytics, useStrategy } from '../hooks/use-analytics'
 import { PostCard } from '../components/posts/post-card'
-import { GeneratePostDialog } from '../components/posts/generate-post-dialog'
+import { ComposePostDialog } from '../components/posts/compose-post-dialog'
 import { XpBar } from '../components/game/xp-bar'
 import { LevelBadge } from '../components/game/level-badge'
 import { AchievementGrid } from '../components/game/achievement-grid'
@@ -19,7 +19,7 @@ type Tab = 'posts' | 'strategy' | 'analytics' | 'game'
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [tab, setTab] = useState<Tab>('posts')
-  const [showGenerate, setShowGenerate] = useState(false)
+  const [showCompose, setShowCompose] = useState(false)
 
   const { data: account } = useAccount(id!)
   const { data: posts } = usePosts(id)
@@ -75,10 +75,18 @@ export default function AccountDetailPage() {
       {/* Posts tab */}
       {tab === 'posts' && (
         <div className="space-y-4">
-          <button onClick={() => setShowGenerate(true)}
-            className="btn-pixel bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-4 py-2 font-pixel text-[8px]">
-            ✦ GENERATE POST
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCompose(true)}
+              className="btn-pixel bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-4 py-2 font-pixel text-[8px]"
+            >
+              NEW POST
+            </button>
+          </div>
+          <p className="text-[10px] text-[hsl(var(--muted-foreground))] max-w-xl">
+            Write manually or use AI (generate / augment) inside the composer. Saving still creates a normal draft in your queue.
+          </p>
           {posts && posts.length > 0 ? (
             posts.map((p) => <PostCard key={p.id} post={p} />)
           ) : (
@@ -158,8 +166,12 @@ export default function AccountDetailPage() {
         </div>
       )}
 
-      {showGenerate && account && (
-        <GeneratePostDialog account={account} onClose={() => setShowGenerate(false)} />
+      {showCompose && account && (
+        <ComposePostDialog
+          account={account}
+          onClose={() => setShowCompose(false)}
+          llmEnabled={strategy?.llmEnabled !== false}
+        />
       )}
     </div>
   )

@@ -45,7 +45,10 @@ export const postService = {
     return post.posts
   },
 
-  async generatePost(userId: string, accountId: string, contextHint?: string) {
+  /**
+   * AI suggestion only — does not create a post row. Client saves via createPost when ready.
+   */
+  async previewAiPost(userId: string, accountId: string, contextHint?: string, augmentDraft?: string) {
     const account = await accountService.getAccount(userId, accountId)
     const [strategy] = await db
       .select()
@@ -60,7 +63,25 @@ export const postService = {
       throw err
     }
 
-    // Get recent posts to avoid repetition
+    if (!strategy.llmEnabled) {
+      const err = new Error(
+        'AI drafting is turned off for this account. Enable it under Strategy, or compose manually.',
+      ) as Error & { status: number; code: string }
+      err.status = 400
+      err.code = 'LLM_DISABLED'
+      throw err
+    }
+
+    const hasKey = await settingsService.hasLlmApiKey(userId, strategy.llmProvider)
+    if (!hasKey) {
+      const err = new Error(
+        'No LLM API key configured. Add one in Settings to use AI in the composer.',
+      ) as Error & { status: number; code: string }
+      err.status = 400
+      err.code = 'NO_LLM_KEY'
+      throw err
+    }
+
     const recentPosts = await db
       .select({ content: posts.content })
       .from(posts)
@@ -75,28 +96,25 @@ export const postService = {
     })
 
     const adapter = createPlatformAdapter(account.platform)
-    const result = await provider.generatePost({
+    const baseInput = {
       niche: strategy.niche,
       tone: strategy.tone,
       personaPrompt: strategy.personaPrompt,
       maxLength: adapter.getMaxPostLength(),
       recentPosts: recentPosts.map((p) => p.content),
       context: contextHint,
-    })
+    }
 
-    const [post] = await db
-      .insert(posts)
-      .values({
-        accountId,
-        content: result.content,
-        status: strategy.postMode === 'auto' ? 'queued' : 'queued',
-        llmProvider: result.provider,
-        llmModel: result.model,
-        generationPrompt: JSON.stringify({ niche: strategy.niche, tone: strategy.tone }),
-      })
-      .returning()
+    const trimmedAugment = augmentDraft?.trim()
+    const result = trimmedAugment
+      ? await provider.augmentPost(trimmedAugment, baseInput)
+      : await provider.generatePost(baseInput)
 
-    return post!
+    return {
+      content: result.content,
+      provider: result.provider,
+      model: result.model,
+    }
   },
 
   async createPost(userId: string, accountId: string, content: string, scheduledFor?: string) {

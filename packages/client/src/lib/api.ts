@@ -14,6 +14,8 @@ class ApiError extends Error {
   }
 }
 
+const SESSION_EXPIRED_MSG = 'Your Social Science session expired. Please sign in again.'
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = useAuthStore.getState().token
   const headers: Record<string, string> = {
@@ -26,9 +28,17 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const json = await res.json().catch(() => ({}))
 
   if (!res.ok) {
+    const code = json.code as string | undefined
+    // Stale JWT in localStorage: layout still shows "logged in" but API rejects the token.
+    if (res.status === 401 && code === 'INVALID_TOKEN') {
+      useAuthStore.getState().logout()
+      const next = `/login?session=expired&redirect=${encodeURIComponent(`${window.location.pathname}${window.location.search}`)}`
+      window.location.assign(next)
+      throw new ApiError(401, 'INVALID_TOKEN', SESSION_EXPIRED_MSG, json.details)
+    }
     throw new ApiError(
       json.status ?? res.status,
-      json.code ?? 'UNKNOWN',
+      code ?? 'UNKNOWN',
       json.message ?? 'Request failed',
       json.details,
     )

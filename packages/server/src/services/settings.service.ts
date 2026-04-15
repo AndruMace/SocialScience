@@ -61,4 +61,18 @@ export const settingsService = {
       settings,
     }
   },
+
+  /** True if the resolved provider has a non-empty API key (user settings or env). */
+  async hasLlmApiKey(userId: string, providerOverride?: string | null): Promise<boolean> {
+    const { apiKey } = await this.resolveLlmConfig(userId, providerOverride, null)
+    return Boolean(apiKey?.trim())
+  },
+
+  /** True if the user saved a non-empty Anthropic or OpenAI key in app settings (not server env). */
+  async hasUserLlmApiKey(userId: string): Promise<boolean> {
+    const settings = await this.getUserSettings(userId)
+    const userAnthropic = (settings['anthropic_api_key'] ?? '').trim()
+    const userOpenai = (settings['openai_api_key'] ?? '').trim()
+    return Boolean(userAnthropic || userOpenai)
+  },
 }

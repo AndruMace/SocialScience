@@ -15,6 +15,7 @@ export const strategies = pgTable('strategies', {
   scheduleEnd: time('schedule_end').default('21:00').notNull(),
   timezone: varchar('timezone', { length: 50 }).default('UTC').notNull(),
   postMode: varchar('post_mode', { length: 20 }).default('queue').notNull(),
+  llmEnabled: boolean('llm_enabled').default(true).notNull(),
   llmProvider: varchar('llm_provider', { length: 50 }),
   llmModel: varchar('llm_model', { length: 100 }),
   engagementRules: jsonb('engagement_rules')

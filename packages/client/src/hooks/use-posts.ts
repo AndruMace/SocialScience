@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { Post, GeneratePostRequest, CreatePostRequest, UpdatePostRequest } from '@socialscience/shared'
+import type { Post, AiPreviewRequest, AiPreviewResponse, CreatePostRequest, UpdatePostRequest } from '@socialscience/shared'
 
 export function usePosts(accountId?: string, status?: string) {
   const params = new URLSearchParams()
@@ -13,11 +13,9 @@ export function usePosts(accountId?: string, status?: string) {
   })
 }
 
-export function useGeneratePost() {
-  const qc = useQueryClient()
+export function useAiPreview() {
   return useMutation({
-    mutationFn: (data: GeneratePostRequest) => api.post<Post>('/posts/generate', data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['posts'] }),
+    mutationFn: (data: AiPreviewRequest) => api.post<AiPreviewResponse>('/posts/preview', data),
   })
 }
 

@@ -34,6 +34,29 @@ export class OpenAIProvider extends LLMProvider {
     }
   }
 
+  async augmentPost(draft: string, input: GeneratePostInput): Promise<GeneratePostOutput> {
+    if (!this.client || !this.config) throw new Error('OpenAIProvider not configured')
+    const completion = await this.client.chat.completions.create({
+      model: this.config.model,
+      max_tokens: this.config.maxTokens ?? 512,
+      messages: [
+        { role: 'system', content: this.buildAugmentSystemPrompt(input) },
+        {
+          role: 'user',
+          content: `Improve this draft:\n\n"""${draft}"""`,
+        },
+      ],
+    })
+    const content = completion.choices[0]?.message.content
+    if (!content) throw new Error('No content returned from OpenAI')
+    return {
+      content: content.trim(),
+      provider: 'openai',
+      model: this.config.model,
+      tokensUsed: completion.usage?.total_tokens ?? 0,
+    }
+  }
+
   async generateReply(originalPost: string, input: GeneratePostInput): Promise<GeneratePostOutput> {
     if (!this.client || !this.config) throw new Error('OpenAIProvider not configured')
     const completion = await this.client.chat.completions.create({

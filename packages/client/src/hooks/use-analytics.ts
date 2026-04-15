@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { AnalyticsSnapshot } from '@socialscience/shared'
+import type { AnalyticsSnapshot, Strategy } from '@socialscience/shared'
 
 export function useAccountAnalytics(accountId: string, from?: string, to?: string) {
   const params = new URLSearchParams()
@@ -39,7 +39,7 @@ export function useRefreshAnalytics(accountId: string) {
 export function useStrategy(accountId: string) {
   return useQuery({
     queryKey: ['strategy', accountId],
-    queryFn: () => api.get(`/accounts/${accountId}/strategy`),
+    queryFn: () => api.get<Strategy | null>(`/accounts/${accountId}/strategy`),
     enabled: !!accountId,
   })
 }

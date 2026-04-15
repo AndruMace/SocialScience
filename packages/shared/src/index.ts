@@ -20,7 +20,8 @@ export type {
   AuthResponse,
   ConnectAccountRequest,
   RegisterBlueskyAccountRequest,
-  GeneratePostRequest,
+  AiPreviewRequest,
+  AiPreviewResponse,
   CreatePostRequest,
   UpdatePostRequest,
 } from './types/api.js'

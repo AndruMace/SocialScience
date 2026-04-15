@@ -50,7 +50,9 @@ export default function PostQueuePage() {
       ) : (
         <div className="card-pixel p-8 text-center text-[hsl(var(--muted-foreground))]">
           <div className="font-pixel text-[8px]">NO QUESTS FOUND</div>
-          <p className="mt-2">Generate some posts from an account to populate the queue.</p>
+          <p className="mt-2">
+            Compose posts manually from an account&apos;s Posts tab, or use AI drafts if enabled in Strategy and Settings.
+          </p>
         </div>
       )}
     </div>

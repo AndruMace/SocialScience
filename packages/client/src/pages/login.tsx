@@ -1,10 +1,16 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router'
+import { useNavigate, Link, useSearchParams } from 'react-router'
 import { api } from '../lib/api'
 import { useAuthStore } from '../stores/auth.store'
 import type { AuthResponse } from '@socialscience/shared'
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams()
+  const sessionExpired = searchParams.get('session') === 'expired'
+  const rawRedirect = searchParams.get('redirect')
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/'
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -19,7 +25,7 @@ export default function LoginPage() {
     try {
       const { token, user } = await api.post<AuthResponse>('/auth/login', { email, password })
       setAuth(token, user)
-      navigate('/')
+      navigate(redirectTo.startsWith('/') ? redirectTo : '/', { replace: true })
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -34,6 +40,12 @@ export default function LoginPage() {
           <h1 className="font-pixel text-[12px] text-[hsl(var(--primary))] leading-relaxed">SOCIAL<br/>SCIENCE</h1>
           <p className="text-[hsl(var(--muted-foreground))] text-sm">PLAYER LOGIN</p>
         </div>
+
+        {sessionExpired && (
+          <p className="text-sm text-[hsl(var(--muted-foreground))] pixel-border border-[hsl(var(--secondary))] p-3">
+            Your session expired (tokens last a limited time). Sign in again to continue.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">

@@ -17,12 +17,16 @@ export const strategyService = {
 
   async upsertStrategy(userId: string, accountId: string, input: StrategyInput) {
     await accountService.getAccount(userId, accountId)
+    const niche =
+      input.llmEnabled ? input.niche.trim() : (input.niche?.trim() || 'Manual posting')
+    const tone = input.llmEnabled ? input.tone.trim() : (input.tone?.trim() || 'Manual')
+    const row = { ...input, niche, tone }
     const [strategy] = await db
       .insert(strategies)
-      .values({ accountId, ...input })
+      .values({ accountId, ...row })
       .onConflictDoUpdate({
         target: strategies.accountId,
-        set: { ...input, updatedAt: new Date() },
+        set: { ...row, updatedAt: new Date() },
       })
       .returning()
     return strategy!

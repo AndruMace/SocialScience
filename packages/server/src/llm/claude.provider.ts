@@ -32,6 +32,24 @@ export class ClaudeProvider extends LLMProvider {
     }
   }
 
+  async augmentPost(draft: string, input: GeneratePostInput): Promise<GeneratePostOutput> {
+    if (!this.client || !this.config) throw new Error('ClaudeProvider not configured')
+    const message = await this.client.messages.create({
+      model: this.config.model,
+      max_tokens: this.config.maxTokens ?? 512,
+      system: this.buildAugmentSystemPrompt(input),
+      messages: [{ role: 'user', content: `Improve this draft:\n\n"""${draft}"""` }],
+    })
+    const content = message.content[0]
+    if (content?.type !== 'text') throw new Error('Unexpected response type from Claude')
+    return {
+      content: content.text.trim(),
+      provider: 'claude',
+      model: this.config.model,
+      tokensUsed: message.usage.input_tokens + message.usage.output_tokens,
+    }
+  }
+
   async generateReply(originalPost: string, input: GeneratePostInput): Promise<GeneratePostOutput> {
     if (!this.client || !this.config) throw new Error('ClaudeProvider not configured')
     const message = await this.client.messages.create({

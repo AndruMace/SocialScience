@@ -15,7 +15,13 @@ export async function handlePostGeneration() {
     .select({ strategy: strategies, account: accounts })
     .from(strategies)
     .innerJoin(accounts, eq(strategies.accountId, accounts.id))
-    .where(and(eq(accounts.isActive, true), eq(strategies.postMode, 'auto')))
+    .where(
+      and(
+        eq(accounts.isActive, true),
+        eq(strategies.postMode, 'auto'),
+        eq(strategies.llmEnabled, true),
+      ),
+    )
 
   for (const { strategy, account } of activeStrategies) {
     try {
@@ -40,6 +46,10 @@ export async function handlePostGeneration() {
       }
 
       const llmConfig = await settingsService.resolveLlmConfig(account.userId, strategy.llmProvider, strategy.llmModel)
+      if (!llmConfig.apiKey?.trim()) {
+        console.error(`Skipping post generation for account ${account.id}: no LLM API key`)
+        continue
+      }
       const provider = createLLMProvider(llmConfig.provider, {
         model: llmConfig.model,
         apiKey: llmConfig.apiKey,

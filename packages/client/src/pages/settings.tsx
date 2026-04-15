@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { useLlmAvailability } from '../hooks/use-llm-availability'
 import { useUIStore } from '../stores/ui.store'
 import { LLM_PROVIDERS } from '@socialscience/shared'
 
 export default function SettingsPage() {
+  const qc = useQueryClient()
   const addToast = useUIStore((s) => s.addToast)
+  const { data: llmAvail } = useLlmAvailability()
+  const llmDisconnected = llmAvail?.connected !== true
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -19,6 +24,7 @@ export default function SettingsPage() {
     setSaving(true)
     try {
       await api.put('/settings', settings)
+      await qc.invalidateQueries({ queryKey: ['llm-availability'] })
       addToast({ title: 'SETTINGS SAVED', type: 'success' })
     } catch (err) {
       addToast({ title: 'SAVE FAILED', description: (err as Error).message, type: 'error' })
@@ -57,7 +63,16 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-5">
         <div className="card-pixel p-5 space-y-4">
-          <div className="font-pixel text-[8px] text-[hsl(var(--muted-foreground))]">LLM PROVIDERS</div>
+          <div className="font-pixel text-[8px] text-[hsl(var(--muted-foreground))]">LLM PROVIDERS (OPTIONAL)</div>
+          <p className="text-[10px] text-[hsl(var(--muted-foreground))] leading-relaxed">
+            Only required if you enable AI drafting in an account&apos;s Strategy. You can compose posts manually and
+            publish from the queue without configuring providers or API keys.
+          </p>
+          {llmDisconnected && (
+            <p className="text-[10px] text-[hsl(var(--muted-foreground))] pixel-border border-[hsl(var(--secondary))] p-3">
+              No API key is saved yet—AI actions in the post composer stay disabled until you add and save a key below.
+            </p>
+          )}
 
           {field('DEFAULT PROVIDER', (
             <select

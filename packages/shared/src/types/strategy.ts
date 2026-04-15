@@ -18,6 +18,8 @@ export interface Strategy {
   scheduleEnd: string
   timezone: string
   postMode: PostMode
+  /** When false, posts are composed manually; AI generate & LLM-based auto schedules are off. */
+  llmEnabled: boolean
   llmProvider: string | null
   llmModel: string | null
   engagementRules: EngagementRules

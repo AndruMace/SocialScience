@@ -56,9 +56,18 @@ export interface RegisterBlueskyAccountRequest {
 }
 
 // Post DTOs
-export interface GeneratePostRequest {
+/** AI preview in composer — does not create a post until user saves. */
+export interface AiPreviewRequest {
   accountId: string
   contextHint?: string
+  /** When set, AI rewrites this draft; when omitted, AI generates from scratch. */
+  augmentDraft?: string
+}
+
+export interface AiPreviewResponse {
+  content: string
+  provider: string
+  model: string
 }
 
 export interface CreatePostRequest {

@@ -26,6 +26,15 @@ router.get('/llm/providers', (_req, res) => {
   res.json({ data: getAvailableProviders() })
 })
 
+router.get('/llm/availability', async (req: AuthRequest, res, next) => {
+  try {
+    const connected = await settingsService.hasUserLlmApiKey(req.userId!)
+    res.json({ data: { connected } })
+  } catch (err) {
+    next(err)
+  }
+})
+
 router.post(
   '/llm/test',
   validate(z.object({ provider: z.string(), model: z.string().optional() })),

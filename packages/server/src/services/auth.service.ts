@@ -6,7 +6,8 @@ import { users } from '../db/schema/index.js'
 import { env } from '../config/env.js'
 
 const SALT_ROUNDS = 12
-const JWT_EXPIRY = '7d'
+/** Shown in login UI when session expires; keep in sync with client copy if you change this. */
+const JWT_EXPIRY = '30d'
 
 export const authService = {
   async register(email: string, password: string, displayName?: string) {

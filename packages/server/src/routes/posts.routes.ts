@@ -19,9 +19,10 @@ const updatePostSchema = z.object({
   scheduledFor: z.string().datetime().nullable().optional(),
 })
 
-const generateSchema = z.object({
+const previewAiSchema = z.object({
   accountId: z.string().uuid(),
   contextHint: z.string().optional(),
+  augmentDraft: z.string().max(500).optional(),
 })
 
 const scheduleSchema = z.object({
@@ -36,11 +37,15 @@ router.get('/', async (req: AuthRequest, res, next) => {
   } catch (err) { next(err) }
 })
 
-router.post('/generate', validate(generateSchema), async (req: AuthRequest, res, next) => {
+router.post('/preview', validate(previewAiSchema), async (req: AuthRequest, res, next) => {
   try {
-    const { accountId, contextHint } = req.body as { accountId: string; contextHint?: string }
-    const post = await postService.generatePost(req.userId!, accountId, contextHint)
-    res.status(201).json({ data: post })
+    const { accountId, contextHint, augmentDraft } = req.body as {
+      accountId: string
+      contextHint?: string
+      augmentDraft?: string
+    }
+    const data = await postService.previewAiPost(req.userId!, accountId, contextHint, augmentDraft)
+    res.json({ data })
   } catch (err) { next(err) }
 })
 
