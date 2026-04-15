@@ -45,16 +45,6 @@ export interface ConnectAccountRequest {
   serviceUrl?: string
 }
 
-/** Server calls Bluesky PDS Entryway createAccount; session is stored like a normal linked account. */
-export interface RegisterBlueskyAccountRequest {
-  handle: string
-  password: string
-  email: string
-  inviteCode?: string
-  verificationCode?: string
-  serviceUrl?: string
-}
-
 // Post DTOs
 /** AI preview in composer — does not create a post until user saves. */
 export interface AiPreviewRequest {

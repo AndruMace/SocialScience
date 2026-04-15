@@ -1,5 +1,6 @@
 import type { LLMProvider } from './base.provider.js'
 import { ClaudeProvider } from './claude.provider.js'
+import { GeminiProvider } from './gemini.provider.js'
 import { OpenAIProvider } from './openai.provider.js'
 import { LLM_PROVIDERS } from '@socialscience/shared'
 
@@ -7,6 +8,7 @@ type ProviderFactory = () => LLMProvider
 
 const providerFactories: Record<string, ProviderFactory> = {
   claude: () => new ClaudeProvider(),
+  gemini: () => new GeminiProvider(),
   openai: () => new OpenAIProvider(),
 }
 

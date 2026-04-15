@@ -28,7 +28,8 @@ export abstract class LLMProvider {
   abstract configure(config: LLMConfig): void
   abstract generatePost(input: GeneratePostInput): Promise<GeneratePostOutput>
   abstract generateReply(originalPost: string, input: GeneratePostInput): Promise<GeneratePostOutput>
-  abstract testConnection(): Promise<boolean>
+  /** Verify credentials; throws with a useful message on failure. */
+  abstract testConnection(): Promise<void>
 
   protected buildSystemPrompt(input: GeneratePostInput): string {
     const recentPostsSection =

@@ -19,7 +19,6 @@ export type {
   RegisterRequest,
   AuthResponse,
   ConnectAccountRequest,
-  RegisterBlueskyAccountRequest,
   AiPreviewRequest,
   AiPreviewResponse,
   CreatePostRequest,
@@ -43,6 +42,4 @@ export type { LLMProviderName } from './constants/llm.js'
 // Validators
 export { strategySchema, engagementRulesSchema } from './validators/strategy.js'
 export type { StrategyInput } from './validators/strategy.js'
-export { loginSchema, registerSchema, connectAccountSchema, registerBlueskyAccountSchema } from './validators/auth.js'
-
-export { suggestSubaddressEmail } from './util/email-subaddress.js'
+export { loginSchema, registerSchema, connectAccountSchema } from './validators/auth.js'

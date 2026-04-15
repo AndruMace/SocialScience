@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuthStore } from '../stores/auth.store'
 
-/** `connected` is true when the user has saved a non-empty Anthropic or OpenAI key in Options (not server env alone). */
+/** `connected` is true when the user has saved a non-empty LLM key in Options (not server env alone). */
 export interface LlmAvailability {
   connected: boolean
 }

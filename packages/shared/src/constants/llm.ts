@@ -8,6 +8,12 @@ export const LLM_PROVIDERS = {
     ],
     defaultModel: 'claude-sonnet-4-6',
   },
+  gemini: {
+    name: 'Gemini (Google)',
+    /** IDs for Google AI Studio (`generativelanguage.googleapis.com`); bare `gemini-1.5-*` names were retired. */
+    models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'],
+    defaultModel: 'gemini-2.5-flash',
+  },
   openai: {
     name: 'OpenAI',
     models: ['gpt-4.1', 'gpt-4o', 'gpt-4o-mini'],

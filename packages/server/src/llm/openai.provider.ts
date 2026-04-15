@@ -80,17 +80,12 @@ export class OpenAIProvider extends LLMProvider {
     }
   }
 
-  async testConnection(): Promise<boolean> {
-    if (!this.client) return false
-    try {
-      await this.client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        max_tokens: 5,
-        messages: [{ role: 'user', content: 'Hi' }],
-      })
-      return true
-    } catch {
-      return false
-    }
+  async testConnection(): Promise<void> {
+    if (!this.client) throw new Error('OpenAI provider not configured')
+    await this.client.chat.completions.create({
+      model: this.config?.model ?? 'gpt-4o-mini',
+      max_tokens: 5,
+      messages: [{ role: 'user', content: 'Hi' }],
+    })
   }
 }

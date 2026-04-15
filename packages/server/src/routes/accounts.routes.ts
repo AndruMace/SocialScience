@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { authMiddleware, type AuthRequest } from '../middleware/auth.middleware.js'
 import { validate } from '../middleware/validate.middleware.js'
-import { connectAccountSchema, registerBlueskyAccountSchema } from '@socialscience/shared'
+import { connectAccountSchema } from '@socialscience/shared'
 import { accountService } from '../services/account.service.js'
 
 const router = Router()
@@ -18,22 +18,6 @@ router.post('/', validate(connectAccountSchema), async (req: AuthRequest, res, n
   try {
     const { platform, handle, password, serviceUrl } = req.body as { platform: string; handle: string; password: string; serviceUrl?: string }
     const { account, profile } = await accountService.connectAccount(req.userId!, platform, handle, password, serviceUrl)
-    const { credentialEnc: _c, credentialIv: _iv, ...safe } = account
-    res.status(201).json({ data: { ...safe, ...profile } })
-  } catch (err) { next(err) }
-})
-
-router.post('/bluesky/register', validate(registerBlueskyAccountSchema), async (req: AuthRequest, res, next) => {
-  try {
-    const body = req.body as {
-      handle: string
-      password: string
-      email: string
-      inviteCode?: string
-      verificationCode?: string
-      serviceUrl?: string
-    }
-    const { account, profile } = await accountService.registerBlueskyAccount(req.userId!, body)
     const { credentialEnc: _c, credentialIv: _iv, ...safe } = account
     res.status(201).json({ data: { ...safe, ...profile } })
   } catch (err) { next(err) }

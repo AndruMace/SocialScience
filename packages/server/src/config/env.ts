@@ -21,6 +21,7 @@ export const env = {
   ENCRYPTION_KEY: required('ENCRYPTION_KEY'),
   ANTHROPIC_API_KEY: optional('ANTHROPIC_API_KEY', ''),
   OPENAI_API_KEY: optional('OPENAI_API_KEY', ''),
+  GEMINI_API_KEY: optional('GEMINI_API_KEY', ''),
   PORT: parseInt(optional('PORT', '3001'), 10),
   NODE_ENV: optional('NODE_ENV', 'development'),
 }

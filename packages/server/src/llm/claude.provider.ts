@@ -73,17 +73,12 @@ export class ClaudeProvider extends LLMProvider {
     }
   }
 
-  async testConnection(): Promise<boolean> {
-    if (!this.client) return false
-    try {
-      await this.client.messages.create({
-        model: this.supportedModels[1]!,
-        max_tokens: 10,
-        messages: [{ role: 'user', content: 'Hi' }],
-      })
-      return true
-    } catch {
-      return false
-    }
+  async testConnection(): Promise<void> {
+    if (!this.client) throw new Error('Claude provider not configured')
+    await this.client.messages.create({
+      model: this.config?.model ?? this.supportedModels[1]!,
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'Hi' }],
+    })
   }
 }

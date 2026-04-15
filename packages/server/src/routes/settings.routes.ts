@@ -37,15 +37,39 @@ router.get('/llm/availability', async (req: AuthRequest, res, next) => {
 
 router.post(
   '/llm/test',
-  validate(z.object({ provider: z.string(), model: z.string().optional() })),
-  async (req: AuthRequest, res, next) => {
-  try {
-    const { provider, model } = req.body as { provider: string; model?: string }
-    const llmConfig = await settingsService.resolveLlmConfig(req.userId!, provider, model)
-    const llm = createLLMProvider(provider, { model: llmConfig.model, apiKey: llmConfig.apiKey })
-    const ok = await llm.testConnection()
-    res.json({ data: { ok } })
-  } catch (err) { next(err) }
+  validate(
+    z.object({
+      provider: z.string(),
+      model: z.string().optional(),
+      /** When set, used for this test only (e.g. unsaved value from the UI). Otherwise saved settings / env. */
+      apiKey: z.string().optional(),
+    }),
+  ),
+  async (req: AuthRequest, res) => {
+    try {
+      const { provider, model, apiKey: apiKeyFromBody } = req.body as {
+        provider: string
+        model?: string
+        apiKey?: string
+      }
+      const llmConfig = await settingsService.resolveLlmConfig(req.userId!, provider, model)
+      const apiKey = (apiKeyFromBody?.trim() || llmConfig.apiKey?.trim()) ?? ''
+      if (!apiKey) {
+        res.json({
+          data: {
+            ok: false,
+            error: `No API key for "${provider}". Paste a key in the matching field (or save a stored key), with Default provider set to that provider.`,
+          },
+        })
+        return
+      }
+      const llm = createLLMProvider(provider, { model: llmConfig.model, apiKey })
+      await llm.testConnection()
+      res.json({ data: { ok: true } })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Connection test failed'
+      res.json({ data: { ok: false, error: message } })
+    }
   },
 )
 

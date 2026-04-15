@@ -5,6 +5,13 @@ import { useLlmAvailability } from '../hooks/use-llm-availability'
 import { useUIStore } from '../stores/ui.store'
 import { LLM_PROVIDERS } from '@socialscience/shared'
 
+function apiKeyForProvider(settings: Record<string, string>, provider: string): string {
+  if (provider === 'claude') return settings['anthropic_api_key'] ?? ''
+  if (provider === 'openai') return settings['openai_api_key'] ?? ''
+  if (provider === 'gemini') return settings['gemini_api_key'] ?? ''
+  return ''
+}
+
 export default function SettingsPage() {
   const qc = useQueryClient()
   const addToast = useUIStore((s) => s.addToast)
@@ -36,10 +43,16 @@ export default function SettingsPage() {
   async function testProvider() {
     setTesting(true)
     try {
-      const result = await api.post<{ ok: boolean }>('/settings/llm/test', {
-        provider: settings['default_llm_provider'] ?? 'claude',
+      const provider = settings['default_llm_provider'] ?? 'claude'
+      const result = await api.post<{ ok: boolean; error?: string }>('/settings/llm/test', {
+        provider,
+        apiKey: apiKeyForProvider(settings, provider),
       })
-      addToast({ title: result.ok ? 'CONNECTION OK' : 'CONNECTION FAILED', type: result.ok ? 'success' : 'error' })
+      addToast({
+        title: result.ok ? 'CONNECTION OK' : 'CONNECTION FAILED',
+        description: result.ok ? undefined : result.error,
+        type: result.ok ? 'success' : 'error',
+      })
     } catch (err) {
       addToast({ title: 'TEST FAILED', description: (err as Error).message, type: 'error' })
     } finally {
@@ -95,6 +108,19 @@ export default function SettingsPage() {
               onChange={(e) => setSettings({ ...settings, openai_api_key: e.target.value })}
               placeholder="sk-..." className={inputClass} />
           ))}
+
+          {field('GEMINI API KEY', (
+            <input type="password" value={settings['gemini_api_key'] ?? ''}
+              onChange={(e) => setSettings({ ...settings, gemini_api_key: e.target.value })}
+              placeholder="Google AI Studio key"
+              className={inputClass} />
+          ))}
+
+          <p className="text-[10px] text-[hsl(var(--muted-foreground))] leading-relaxed">
+            <strong className="text-[hsl(var(--foreground))]">Test connection</strong> uses whatever is currently in the API
+            key field for your <strong className="text-[hsl(var(--foreground))]">Default provider</strong> (no need to save
+            first). Save when you want keys stored for later sessions.
+          </p>
 
           <button type="button" onClick={testProvider} disabled={testing}
             className="btn-pixel px-4 py-2 text-xs font-pixel text-[7px]">

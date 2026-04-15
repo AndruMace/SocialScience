@@ -3,7 +3,6 @@ import { db } from '../config/db.js'
 import { accounts, gameState, analyticsSnapshots, achievements } from '../db/schema/index.js'
 import { encrypt, decrypt } from './crypto.js'
 import { createPlatformAdapter } from '../platforms/registry.js'
-import type { BlueskyAdapter } from '../platforms/bluesky.adapter.js'
 import { gameService } from './game.service.js'
 import { XP_REWARDS } from '@socialscience/shared'
 
@@ -55,56 +54,6 @@ export const accountService = {
       .onConflictDoNothing()
 
     // Award connection XP
-    await gameService.awardXp(account.id, 'account_connected', XP_REWARDS.ACCOUNT_CONNECTED)
-
-    return { account, profile }
-  },
-
-  async registerBlueskyAccount(
-    userId: string,
-    params: {
-      handle: string
-      password: string
-      email: string
-      inviteCode?: string
-      verificationCode?: string
-      serviceUrl?: string
-    },
-  ) {
-    const adapter = createPlatformAdapter('bluesky') as BlueskyAdapter
-    await adapter.registerAccount(params)
-    const profile = await adapter.getProfile()
-
-    const { encrypted, iv } = encrypt(params.password)
-
-    const [account] = await db
-      .insert(accounts)
-      .values({
-        userId,
-        platform: 'bluesky',
-        handle: profile.handle,
-        displayName: profile.displayName,
-        avatarUrl: profile.avatarUrl ?? null,
-        credentialEnc: encrypted,
-        credentialIv: iv,
-        serviceUrl: params.serviceUrl ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [accounts.userId, accounts.platform, accounts.handle],
-        set: {
-          displayName: profile.displayName,
-          avatarUrl: profile.avatarUrl ?? null,
-          credentialEnc: encrypted,
-          credentialIv: iv,
-          updatedAt: new Date(),
-        },
-      })
-      .returning()
-
-    if (!account) throw new Error('Failed to create account')
-
-    await db.insert(gameState).values({ accountId: account.id }).onConflictDoNothing()
-
     await gameService.awardXp(account.id, 'account_connected', XP_REWARDS.ACCOUNT_CONNECTED)
 
     return { account, profile }

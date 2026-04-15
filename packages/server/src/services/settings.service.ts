@@ -5,7 +5,7 @@ import { decrypt, encrypt } from './crypto.js'
 import { env } from '../config/env.js'
 
 const SENSITIVE_PREFIX = 'enc:'
-const SENSITIVE_KEYS = new Set(['anthropic_api_key', 'openai_api_key'])
+const SENSITIVE_KEYS = new Set(['anthropic_api_key', 'openai_api_key', 'gemini_api_key'])
 
 function encodeValue(key: string, value: string): string {
   if (!SENSITIVE_KEYS.has(key) || value === '') return value
@@ -24,6 +24,7 @@ function decodeValue(key: string, value: string): string {
 function getProviderApiKey(provider: string, settings: Record<string, string>): string {
   if (provider === 'claude') return settings['anthropic_api_key'] || env.ANTHROPIC_API_KEY
   if (provider === 'openai') return settings['openai_api_key'] || env.OPENAI_API_KEY
+  if (provider === 'gemini') return settings['gemini_api_key'] || env.GEMINI_API_KEY
   return ''
 }
 
@@ -68,11 +69,12 @@ export const settingsService = {
     return Boolean(apiKey?.trim())
   },
 
-  /** True if the user saved a non-empty Anthropic or OpenAI key in app settings (not server env). */
+  /** True if the user saved a non-empty LLM key in app settings (not server env). */
   async hasUserLlmApiKey(userId: string): Promise<boolean> {
     const settings = await this.getUserSettings(userId)
     const userAnthropic = (settings['anthropic_api_key'] ?? '').trim()
     const userOpenai = (settings['openai_api_key'] ?? '').trim()
-    return Boolean(userAnthropic || userOpenai)
+    const userGemini = (settings['gemini_api_key'] ?? '').trim()
+    return Boolean(userAnthropic || userOpenai || userGemini)
   },
 }

@@ -1,5 +1,4 @@
 import { AtpAgent } from '@atproto/api'
-import { XRPCError } from '@atproto/xrpc'
 import type { PlatformAdapter, PlatformCredentials, PlatformProfile, PlatformPost, CreatePostInput } from './base.adapter.js'
 
 /** Normalize user input into a full handle (default Bluesky suffix when no domain given). */
@@ -10,49 +9,12 @@ export function normalizeBlueskyHandleInput(raw: string): string {
   return h
 }
 
-export interface RegisterBlueskyInput {
-  handle: string
-  password: string
-  email: string
-  inviteCode?: string
-  verificationCode?: string
-  serviceUrl?: string
-}
-
 export class BlueskyAdapter implements PlatformAdapter {
   readonly platform = 'bluesky'
   private agent: AtpAgent
 
   constructor() {
     this.agent = new AtpAgent({ service: 'https://bsky.social' })
-  }
-
-  /**
-   * Create a new ATProto account on the given service (e.g. bsky.social) and hydrate the agent session.
-   */
-  async registerAccount(input: RegisterBlueskyInput): Promise<void> {
-    const service = input.serviceUrl ?? 'https://bsky.social'
-    const handle = normalizeBlueskyHandleInput(input.handle)
-    this.agent = new AtpAgent({ service })
-    try {
-      await this.agent.createAccount({
-        handle,
-        password: input.password,
-        email: input.email,
-        inviteCode: input.inviteCode,
-        verificationCode: input.verificationCode,
-      })
-    } catch (err) {
-      if (err instanceof XRPCError) {
-        const msg = err.message || err.error || 'Could not create Bluesky account'
-        const wrapped = new Error(msg) as Error & { status: number; code: string }
-        const st = err.status
-        wrapped.status = typeof st === 'number' && st >= 400 && st < 600 ? st : 400
-        wrapped.code = err.error || 'BLUESKY_SIGNUP_FAILED'
-        throw wrapped
-      }
-      throw err
-    }
   }
 
   async authenticate(creds: PlatformCredentials): Promise<void> {
