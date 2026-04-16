@@ -133,6 +133,9 @@ export default function AccountDetailPage() {
               <div className="flex-1">
                 <div className="font-pixel text-[10px] text-[hsl(var(--accent))]">{getLevelTitle(game.level)}</div>
                 <XpBar xp={game.xp} level={game.level} className="mt-2" />
+                <div className="text-[hsl(var(--muted-foreground))] text-[10px] mt-2 font-mono">
+                  Activity {game.activityXp.toLocaleString()} · Audience {game.followerStatureXp.toLocaleString()}
+                </div>
               </div>
             </div>
             <div className="flex gap-6 text-sm">
@@ -151,7 +154,10 @@ export default function AccountDetailPage() {
                 {xpHistory.slice(0, 10).map((e) => (
                   <div key={e.id} className="flex justify-between text-sm pixel-border px-3 py-2">
                     <span>{e.eventType.replace(/_/g, ' ')}</span>
-                    <span className="text-[hsl(var(--primary))]">+{e.xpAmount} XP</span>
+                    <span className="text-[hsl(var(--primary))]">
+                      {e.xpAmount >= 0 ? '+' : ''}
+                      {e.xpAmount} XP
+                    </span>
                   </div>
                 ))}
               </div>

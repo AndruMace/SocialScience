@@ -2,7 +2,6 @@ import type { AchievementDef } from '../types/game.js'
 
 export const XP_REWARDS = {
   POST_PUBLISHED: 25,
-  FOLLOWER_GAINED: 10,
   LIKE_RECEIVED: 2,
   REPOST_RECEIVED: 5,
   REPLY_RECEIVED: 3,
@@ -10,6 +9,13 @@ export const XP_REWARDS = {
   VIRAL_POST_BONUS: 200,
   ACCOUNT_CONNECTED: 50,
 } as const
+
+/** XP from audience size alone (monotonic in follower count). Kept in sync with DB migrations that reference the same formula. */
+export function followersToStatureXp(followers: number): number {
+  const f = Math.max(0, Math.floor(Number(followers)))
+  if (!Number.isFinite(f)) return 0
+  return f * 4
+}
 
 export function xpForLevel(level: number): number {
   if (level <= 1) return 0

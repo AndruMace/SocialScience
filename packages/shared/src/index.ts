@@ -28,6 +28,7 @@ export type {
 // Constants
 export {
   XP_REWARDS,
+  followersToStatureXp,
   xpForLevel,
   levelFromXp,
   LEVEL_TITLES,

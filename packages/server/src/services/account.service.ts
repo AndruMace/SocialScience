@@ -56,6 +56,8 @@ export const accountService = {
     // Award connection XP
     await gameService.awardXp(account.id, 'account_connected', XP_REWARDS.ACCOUNT_CONNECTED)
 
+    await gameService.syncFollowerStature(account.id, profile.followers)
+
     return { account, profile }
   },
 

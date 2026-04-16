@@ -8,6 +8,11 @@ export const gameState = pgTable('game_state', {
     .notNull()
     .unique()
     .references(() => accounts.id, { onDelete: 'cascade' }),
+  /** XP from gameplay events (posts, engagement, connection bonus, etc.) */
+  activityXp: integer('activity_xp').notNull().default(0),
+  /** XP from current follower count; see followersToStatureXp in @socialscience/shared */
+  followerStatureXp: integer('follower_stature_xp').notNull().default(0),
+  /** Cached total = activityXp + followerStatureXp */
   xp: integer('xp').notNull().default(0),
   level: integer('level').notNull().default(1),
   streakDays: integer('streak_days').default(0).notNull(),

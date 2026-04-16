@@ -3,7 +3,12 @@ export type AchievementCategory = 'followers' | 'posting' | 'engagement' | 'stre
 export interface GameState {
   id: string
   accountId: string
+  /** Total XP (activity + follower stature); drives level. */
   xp: number
+  /** XP from posts, engagement, streaks, account connection, etc. */
+  activityXp: number
+  /** XP derived from current follower count (updated on analytics poll). */
+  followerStatureXp: number
   level: number
   streakDays: number
   lastPostDate: string | null

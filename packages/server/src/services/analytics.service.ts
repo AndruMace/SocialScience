@@ -18,14 +18,6 @@ export const analyticsService = {
       const adapter = await accountService.getAuthenticatedAdapter(account)
       const profile = await adapter.getProfile()
 
-      // Get previous snapshot to compute follower delta
-      const [prev] = await db
-        .select()
-        .from(analyticsSnapshots)
-        .where(eq(analyticsSnapshots.accountId, accountId))
-        .orderBy(desc(analyticsSnapshots.capturedAt))
-        .limit(1)
-
       await db.insert(analyticsSnapshots).values({
         accountId,
         followers: profile.followers,
@@ -33,13 +25,7 @@ export const analyticsService = {
         totalPosts: profile.postsCount,
       })
 
-      // Award XP for follower gains
-      if (prev && profile.followers > prev.followers) {
-        const gained = profile.followers - prev.followers
-        await gameService.awardXp(accountId, 'follower_gained', gained * XP_REWARDS.FOLLOWER_GAINED, {
-          gained,
-        })
-      }
+      await gameService.syncFollowerStature(accountId, profile.followers)
 
       // Update post analytics for recent published posts
       const recentPublished = await db

@@ -1,8 +1,11 @@
-import { eq, and, desc, sql, count } from 'drizzle-orm'
+import { eq, and, desc, sql, count, sum, notInArray } from 'drizzle-orm'
 import { db } from '../config/db.js'
 import { gameState, achievements, xpEvents, accounts, analyticsSnapshots, posts } from '../db/schema/index.js'
-import { levelFromXp, ACHIEVEMENTS, XP_REWARDS } from '@socialscience/shared'
+import { levelFromXp, ACHIEVEMENTS, XP_REWARDS, followersToStatureXp } from '@socialscience/shared'
 import { getSupportedPlatforms } from '../platforms/registry.js'
+
+/** Event rows that adjust total XP but are not part of activity XP (see awardXp). */
+const NON_ACTIVITY_EVENT_TYPES = ['follower_gained', 'follower_stature_sync'] as const
 
 export const gameService = {
   async awardXp(
@@ -14,14 +17,22 @@ export const gameService = {
     const { oldLevel, newXp, newLevel } = await db.transaction(async (tx) => {
       await tx.insert(gameState).values({ accountId }).onConflictDoNothing()
 
-      const lockedRows = await tx.execute(
-        sql`select xp, level from ${gameState} where ${gameState.accountId} = ${accountId} for update`,
-      )
-      const current = lockedRows[0] as { xp: number; level: number } | undefined
+      const [current] = await tx
+        .select({
+          activityXp: gameState.activityXp,
+          followerStatureXp: gameState.followerStatureXp,
+          level: gameState.level,
+        })
+        .from(gameState)
+        .where(eq(gameState.accountId, accountId))
+        .for('update')
 
-      const currentXp = current?.xp ?? 0
+      const activityXp = current?.activityXp ?? 0
+      const followerStatureXp = current?.followerStatureXp ?? 0
       const oldLevel = current?.level ?? 1
-      const newXp = currentXp + amount
+
+      const newActivityXp = activityXp + amount
+      const newXp = newActivityXp + followerStatureXp
       const newLevel = levelFromXp(newXp)
 
       await tx.insert(xpEvents).values({
@@ -33,7 +44,12 @@ export const gameService = {
 
       await tx
         .update(gameState)
-        .set({ xp: newXp, level: newLevel, updatedAt: new Date() })
+        .set({
+          activityXp: newActivityXp,
+          xp: newXp,
+          level: newLevel,
+          updatedAt: new Date(),
+        })
         .where(eq(gameState.accountId, accountId))
 
       return { oldLevel, newXp, newLevel }
@@ -46,6 +62,109 @@ export const gameService = {
       newLevel,
       leveledUp: newLevel > oldLevel,
       newAchievements,
+    }
+  },
+
+  /**
+   * Sets follower stature XP from the current follower count (monotonic mapping).
+   * Call after capturing an analytics snapshot so totals reflect audience size.
+   */
+  async syncFollowerStature(accountId: string, followers: number): Promise<void> {
+    const newStature = followersToStatureXp(followers)
+
+    await db.transaction(async (tx) => {
+      await tx.insert(gameState).values({ accountId }).onConflictDoNothing()
+
+      const [current] = await tx
+        .select({
+          activityXp: gameState.activityXp,
+          followerStatureXp: gameState.followerStatureXp,
+        })
+        .from(gameState)
+        .where(eq(gameState.accountId, accountId))
+        .for('update')
+
+      const activityXp = current?.activityXp ?? 0
+      const oldStature = current?.followerStatureXp ?? 0
+
+      const delta = newStature - oldStature
+      const newXp = activityXp + newStature
+      const newLevel = levelFromXp(newXp)
+
+      if (delta !== 0) {
+        await tx.insert(xpEvents).values({
+          accountId,
+          eventType: 'follower_stature_sync',
+          xpAmount: delta,
+          metadata: { followers },
+        })
+      }
+
+      await tx
+        .update(gameState)
+        .set({
+          followerStatureXp: newStature,
+          xp: newXp,
+          level: newLevel,
+          updatedAt: new Date(),
+        })
+        .where(eq(gameState.accountId, accountId))
+    })
+
+    await this.checkAchievements(accountId)
+  },
+
+  /** Recompute activity/stature/total/level from xp_events + latest snapshot. Use after schema migrations. */
+  async reconcileGameStateFromEvents(accountId: string): Promise<void> {
+    const [agg] = await db
+      .select({ activity: sum(xpEvents.xpAmount) })
+      .from(xpEvents)
+      .where(
+        and(
+          eq(xpEvents.accountId, accountId),
+          notInArray(xpEvents.eventType, [...NON_ACTIVITY_EVENT_TYPES]),
+        ),
+      )
+
+    const activityXp = Number(agg?.activity ?? 0)
+
+    const [latest] = await db
+      .select()
+      .from(analyticsSnapshots)
+      .where(eq(analyticsSnapshots.accountId, accountId))
+      .orderBy(desc(analyticsSnapshots.capturedAt))
+      .limit(1)
+
+    const followerStatureXp = followersToStatureXp(latest?.followers ?? 0)
+    const totalXp = activityXp + followerStatureXp
+    const newLevel = levelFromXp(totalXp)
+
+    await db
+      .insert(gameState)
+      .values({
+        accountId,
+        activityXp,
+        followerStatureXp,
+        xp: totalXp,
+        level: newLevel,
+      })
+      .onConflictDoUpdate({
+        target: [gameState.accountId],
+        set: {
+          activityXp,
+          followerStatureXp,
+          xp: totalXp,
+          level: newLevel,
+          updatedAt: new Date(),
+        },
+      })
+  },
+
+  /** Rebuild activity/stature splits for every account (run once after migrating schema). */
+  async reconcileAllGameStates(): Promise<void> {
+    const rows = await db.select({ accountId: gameState.accountId }).from(gameState)
+    for (const { accountId } of rows) {
+      await this.reconcileGameStateFromEvents(accountId)
     }
   },
 
