@@ -11,8 +11,8 @@ export const LLM_PROVIDERS = {
   gemini: {
     name: 'Gemini (Google)',
     /** IDs for Google AI Studio (`generativelanguage.googleapis.com`); bare `gemini-1.5-*` names were retired. */
-    models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'],
-    defaultModel: 'gemini-2.5-flash',
+    models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-3-flash-preview'],
+    defaultModel: 'gemini-3-flash-preview',
   },
   openai: {
     name: 'OpenAI',

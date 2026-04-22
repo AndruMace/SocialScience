@@ -1,4 +1,4 @@
-export type Platform = 'bluesky'
+export type Platform = 'bluesky' | 'x'
 
 export interface Account {
   id: string

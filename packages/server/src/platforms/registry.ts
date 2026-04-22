@@ -1,11 +1,12 @@
 import type { PlatformAdapter } from './base.adapter.js'
 import { BlueskyAdapter } from './bluesky.adapter.js'
+import { XAdapter } from './x.adapter.js'
 
 type AdapterFactory = () => PlatformAdapter
 
 const adapterFactories: Record<string, AdapterFactory> = {
   bluesky: () => new BlueskyAdapter(),
-  // twitter: () => new TwitterAdapter(),  // Future
+  x: () => new XAdapter(),
 }
 
 export function createPlatformAdapter(platform: string): PlatformAdapter {

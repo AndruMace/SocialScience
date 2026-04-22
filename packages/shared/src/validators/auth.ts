@@ -12,7 +12,7 @@ export const registerSchema = z.object({
 })
 
 export const connectAccountSchema = z.object({
-  platform: z.enum(['bluesky']),
+  platform: z.enum(['bluesky', 'x']),
   handle: z.string().min(1).max(255),
   password: z.string().min(1),
   serviceUrl: z.string().url().optional(),
